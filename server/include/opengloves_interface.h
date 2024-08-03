@@ -88,6 +88,13 @@ namespace og {
     bool pressed;
   };
 
+  struct TrackPad {
+    auto operator<=>(const TrackPad&) const = default;
+    float x;
+    float y;
+    bool pressed;
+  };
+
   struct Gesture {
     auto operator<=>(const Gesture&) const = default;
     bool activated;
@@ -107,6 +114,7 @@ namespace og {
     Button calibrate;
 
     Joystick joystick;
+    TrackPad trackpad;
 
     Gesture grab;
     Gesture pinch;

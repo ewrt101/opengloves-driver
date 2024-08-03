@@ -47,10 +47,32 @@ namespace NamedPipeInputDataVersion {
     // new
     float trigger_value;
   };
+
+  struct v3 {
+    std::array<std::array<float, 4>, 5> flexion;
+    std::array<float, 5> splay;
+    float joy_x;
+    float joy_y;
+    bool joy_button;
+    bool trigger_button;
+    bool a_button;
+    bool b_button;
+    bool grab;
+    bool pinch;
+    bool menu;
+    bool calibrate;
+
+    // new
+    float trigger_value;
+    //track
+    float track_x;
+    float track_y;
+    bool track_button;
+  };
 }  // namespace NamedPipeInputDataVersion
 
-struct NamedPipeInputData : public NamedPipeInputDataVersion::v2 {
-  NamedPipeInputData() : NamedPipeInputDataVersion::v2(){};
+struct NamedPipeInputData : public NamedPipeInputDataVersion::v3 {
+  NamedPipeInputData() : NamedPipeInputDataVersion::v3(){};
 
   NamedPipeInputData(const NamedPipeInputDataVersion::v1& data) {
     flexion = data.flexion;
@@ -84,6 +106,27 @@ struct NamedPipeInputData : public NamedPipeInputDataVersion::v2 {
     calibrate = data.calibrate;
     trigger_value = data.trigger_value;
   }
+
+  NamedPipeInputData(const NamedPipeInputDataVersion::v3& data) {
+    flexion = data.flexion;
+    splay = data.splay;
+    joy_x = data.joy_x;
+    joy_y = data.joy_y;
+    joy_button = data.joy_button;
+    trigger_button = data.trigger_button;
+    trigger_value = data.trigger_value;
+    a_button = data.a_button;
+    b_button = data.b_button;
+    grab = data.grab;
+    pinch = data.pinch;
+    menu = data.menu;
+    calibrate = data.calibrate;
+    trigger_value = data.trigger_value;
+
+    track_x = data.track_x;
+    track_y = data.track_y;
+    track_button = data.track_button;
+  }
 };
 
 class NamedPipeCommunicationManager::Impl {
@@ -106,6 +149,11 @@ class NamedPipeCommunicationManager::Impl {
         std::regex_replace(base_name, std::regex("\\$version"), "v2"),
         [&](const NamedPipeListenerEvent& event) { OnEvent(event); },
         [&](NamedPipeInputDataVersion::v2* data) { on_data_callback_(static_cast<NamedPipeInputData>(*data)); }));
+    // v3
+    named_pipes_.emplace_back(std::make_unique<NamedPipeListener<NamedPipeInputDataVersion::v3>>(
+        std::regex_replace(base_name, std::regex("\\$version"), "v3"),
+        [&](const NamedPipeListenerEvent& event) { OnEvent(event); },
+        [&](NamedPipeInputDataVersion::v3* data) { on_data_callback_(static_cast<NamedPipeInputData>(*data)); }));
 
     for (const auto& pipe : named_pipes_) {
       pipe->StartListening();
@@ -168,6 +216,10 @@ void NamedPipeCommunicationManager::BeginListener(std::function<void(const og::I
     data.joystick.x = pipe_data.joy_x;
     data.joystick.y = pipe_data.joy_y;
     data.joystick.pressed = pipe_data.joy_button;
+
+    data.trackpad.x = pipe_data.track_x;
+    data.trackpad.y = pipe_data.track_y;
+    data.trackpad.pressed = pipe_data.track_button;
 
     data.calibrate.pressed = pipe_data.calibrate;
     data.calibrate.value = pipe_data.calibrate;
